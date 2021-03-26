@@ -1,7 +1,6 @@
 import sys
 import requests
 import json
-import pdb
 
 class CollisionData:
 	def __init__(self, borough):
@@ -14,14 +13,19 @@ class CollisionData:
 		cycle_collisions = []
 		for collision in collisions:
 			try:
-				if collision["number_of_cyclist_injured"] or collision["number_of_cyclist_killed"]:
-					cycle_collisions.append({"collision_id": collision["collision_id"],
-						"lat": collision["latitude"],
-						"long": collision["longitude"],
-						"injured": collision["number_of_cyclist_injured"],
-						"killed": collision["number_of_cyclist_killed"]})
+				if int(collision["number_of_cyclist_injured"]) > 0 or int(collision["number_of_cyclist_killed"]) > 0:
+					collision_data = {"collision_id": collision["collision_id"],
+						"latitude": collision["latitude"],
+						"longitude": collision["longitude"],
+						"cyclists_injured": collision["number_of_cyclist_injured"],
+						"cyclists_killed": collision["number_of_cyclist_killed"],
+						"borough": collision["borough"]}
+				
+					save_collision_uri = requests.post('http://localhost:5000/collision', json=collision_data)
+					cycle_collisions.append(save_collision_uri.json())
 			except KeyError: continue
 		
+		print(cycle_collisions)
 		return json.dumps(cycle_collisions)
 
 

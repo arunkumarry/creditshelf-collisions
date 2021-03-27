@@ -1,18 +1,10 @@
-# mongo.py
+from flask import Blueprint, request, jsonify
+from app import mongo
 
-from flask import Flask
-from flask import jsonify
-from flask import request
-from flask_pymongo import PyMongo
-app = Flask(__name__)
+collision = Blueprint('collision', __name__)
 
-app.config['MONGO_DBNAME'] = 'collisions'
-app.config['MONGO_URI'] = 'mongodb://localhost:27017/collisions'
-
-mongo = PyMongo(app)
-
-@app.route('/collisions', methods=['GET'])
-def get_all_collision():
+@collision.route('/collisions', methods=['GET'])
+def get_all_collisions():
   collisions = mongo.db.collisions
   output = []
   for collision in collisions.find():
@@ -25,7 +17,21 @@ def get_all_collision():
     })
   return jsonify({'result' : output})
 
-@app.route('/collision/<string:collision_id>', methods=['GET'])
+@collision.route('/collisions/<string:borough>', methods=['GET'])
+def get_collisions_by_borough(borough):
+  collisions = mongo.db.collisions.find({'borough' : borough})
+  output = []
+  for collision in collisions:
+    output.append({'collision_id' : collision['collision_id'],
+      'borough': collision['borough'],
+      'cyclists_injured' : collision['cyclists_injured'],
+      'cyclists_killed': collision['cyclists_killed'],
+      'latitude': collision['latitude'],
+      'longitude': collision['longitude'],
+    })
+  return jsonify({'result' : output})
+
+@collision.route('/collision/<string:collision_id>', methods=['GET'])
 def get_one_collision(collision_id):
   collisions = mongo.db.collisions
   collision = collisions.find_one({'collision_id' : collision_id})
@@ -41,7 +47,7 @@ def get_one_collision(collision_id):
     output = "No such collision"
   return jsonify({'result' : output})
 
-@app.route('/collision', methods=['POST'])
+@collision.route('/collision', methods=['POST'])
 def add_collision():
   collisions = mongo.db.collisions
   collision_id = request.json['collision_id']
@@ -66,6 +72,3 @@ def add_collision():
       'longitude': new_collision['longitude'],
     }
   return jsonify({'result' : output})
-
-if __name__ == '__main__':
-    app.run(debug=True)

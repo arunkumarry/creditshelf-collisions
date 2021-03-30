@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app import mongo
+import pdb
 
 collision = Blueprint('collision', __name__)
 

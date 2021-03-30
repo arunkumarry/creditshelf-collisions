@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Geolocation</title>
+    <script src="//maps.googleapis.com/maps/api/js?key=AIzaSyCRgrK1ZVEZniDMHdcxf2A8tAH-nWbufD0&map_ids=(None,)&language=en&region=US" type="text/javascript"></script>
+
+		<script src="https://unpkg.com/deck.gl@^7.0.0/dist.min.js"></script>
+
+		<script src="https://maps.googleapis.com/maps-api-v3/api/js/42/6/kml.js"></script>
+
+		<style type="text/css">
+					#sndmap { height:800px;width:1400px;margin:0; }
+		</style>
+
+		<script type="text/javascript">
+				var map = null;
+				var map_markers = [];
+				var map_rectangles = [];
+				var map_circles = [];
+				var map_polygons = [];
+				var map_polylines = [];
+				var prev_infowindow_map = null;
+
+				function initialize_map() {
+						var raw_markers = JSON.parse('{{ raw_markers|safe }}')
+						document.getElementById('sndmap').style.display = 'block';
+						map = new google.maps.Map(
+						document.getElementById('sndmap'), {
+								center: new google.maps.LatLng(raw_markers[0].lat, raw_markers[0].lng),
+								zoom: 13,
+								mapTypeId: google.maps.MapTypeId.ROADMAP,
+								zoomControl: true,
+								mapTypeControl: true,
+								scaleControl: true,
+								streetViewControl: true,
+								rotateControl: true,
+								scrollwheel: true,
+								fullscreenControl: true,
+								styles: ""
+						});
+
+						//center map location on user location
+						// add kml layer on map
+						const ctaLayer = new google.maps.KmlLayer({
+						url: "",
+						map: map,
+						});
+
+						// add gmap markers
+						for(i=0; i<raw_markers.length;i++) {
+								console.log(raw_markers[i].lat)
+								map_markers[i] = new google.maps.Marker({
+										position: new google.maps.LatLng(raw_markers[i].lat, raw_markers[i].lng),
+										map: map,
+										icon: raw_markers[i].icon,
+										title: raw_markers[i].title ? raw_markers[i].title : null,
+										label: raw_markers[i].label ? raw_markers[i].label : null
+								});
+
+							if(raw_markers[i].infobox)
+							{
+										google.maps.event.addListener(
+														map_markers[i],
+														'click',
+														getInfoCallback(map, raw_markers[i].infobox)
+										);
+							}
+						}
+				}
+
+				function getInfoCallback(map, content) {
+						var infowindow = new google.maps.InfoWindow({content: content});
+						return function(ev) {
+								if( prev_infowindow_map ) {
+										prev_infowindow_map.close();
+								}
+								prev_infowindow_map = infowindow;
+								infowindow.setPosition(ev.latLng);
+								infowindow.setContent(content);
+								infowindow.open(map, this);
+						};
+				}
+				
+				function clickposCallback(uri, latLng) {
+					xhttp = new XMLHttpRequest();
+					xhttp.open("POST", uri);
+					xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+						xhttp.send("lat=" + latLng.lat() + "&lng="  + latLng.lng());
+				}
+
+				
+						google.maps.event.addDomListener(window, 'load', initialize_map);
+				
+
+		</script>
+  </head>
+  <body>
+    <body>
+      <div id="sndmap" class="map"></div>
+  </body>
+</html>

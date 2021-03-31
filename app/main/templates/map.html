@@ -8,6 +8,8 @@
 
 		<script src="https://maps.googleapis.com/maps-api-v3/api/js/42/6/kml.js"></script>
 
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
 		<style type="text/css">
 					#sndmap { height:800px;width:1400px;margin:0; }
 		</style>
@@ -21,8 +23,11 @@
 				var map_polylines = [];
 				var prev_infowindow_map = null;
 
-				function initialize_map() {
-						var raw_markers = JSON.parse('{{ raw_markers|safe }}')
+				function initialize_map(info) {
+						var raw_markers = info['raw_markers']
+						if (raw_markers === undefined) {
+							var raw_markers = JSON.parse('{{ raw_markers|safe }}')
+						}
 						document.getElementById('sndmap').style.display = 'block';
 						map = new google.maps.Map(
 						document.getElementById('sndmap'), {
@@ -62,19 +67,63 @@
 										google.maps.event.addListener(
 														map_markers[i],
 														'click',
-														getInfoCallback(map, raw_markers[i].infobox)
+														getInfoCallback(map, raw_markers[i].infobox, raw_markers[i].lat, raw_markers[i].lng),
+
 										);
 							}
 						}
 				}
 
-				function getInfoCallback(map, content) {
+				function getSubmitResponse(){
+            var borough = $("#borough").val();
+            $.ajax({
+            type: "GET",
+            url: "/map/collisions/" + borough,
+            // data: { borough: emailId, submiType: 'srSubmit'}
+            })
+            .done(function( json ) {
+
+							 console.log(json)
+							 initialize_map(json)
+            });
+				}
+
+				function getCollisionByBikeStation(lat, lng){
+					var position = String(lat)+','+String(lng)
+					console.log(position)
+            $.ajax({
+            type: "GET",
+            url: "/map/bike-station-collisions/" + position,
+            // data: { borough: emailId, submiType: 'srSubmit'}
+            })
+            .done(function( json ) {
+
+							 console.log(json)
+							 initialize_map(json)
+            });
+				}
+				
+				function getStationResponse(){
+            $.ajax({
+            type: "GET",
+            url: "/map/bike-stations",
+            // data: { borough: emailId, submiType: 'srSubmit'}
+            })
+            .done(function( json ) {
+
+							 console.log(json)
+							 initialize_map(json)
+            });
+        }
+
+				function getInfoCallback(map, content, lat, lng) {
 						var infowindow = new google.maps.InfoWindow({content: content});
 						return function(ev) {
 								if( prev_infowindow_map ) {
 										prev_infowindow_map.close();
 								}
 								prev_infowindow_map = infowindow;
+								getCollisionByBikeStation(lat,lng);
 								infowindow.setPosition(ev.latLng);
 								infowindow.setContent(content);
 								infowindow.open(map, this);
@@ -89,13 +138,23 @@
 				}
 
 				
-						google.maps.event.addDomListener(window, 'load', initialize_map);
+				google.maps.event.addDomListener(window, 'load', initialize_map);
 				
 
 		</script>
   </head>
   <body>
     <body>
-      <div id="sndmap" class="map"></div>
+			<form class="form-inline" role="form" id="formRegister">
+				<div class="form-group">
+					<label for="borough">Borough:</label>
+					<input type="text" name="borough" class="form-control input-lg" id="borough" placeholder="Enter borough">
+				</div>
+				<button type="button" name="srSubmit" onClick="getSubmitResponse();" class="btn btn-default btn-lg">Filter</button>
+			</form>
+
+			<button type="button" name="showStations" onClick="getStationResponse();" class="btn btn-default btn-lg">Bike Stations</button>
+	
+			<div id="sndmap" class="map"></div>
   </body>
 </html>

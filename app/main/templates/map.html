@@ -88,13 +88,13 @@
             });
 				}
 
-				function getCollisionByBikeStation(lat, lng){
+				function getCollisionByBikeStation(lat, lng, station_id){
 					var position = String(lat)+','+String(lng)
 					console.log(position)
             $.ajax({
             type: "GET",
-            url: "/map/bike-station-collisions/" + position,
-            // data: { borough: emailId, submiType: 'srSubmit'}
+            url: "/map/bike-station-collisions",
+            data: { position: position, station_id: station_id}
             })
             .done(function( json ) {
 
@@ -118,12 +118,15 @@
 
 				function getInfoCallback(map, content, lat, lng) {
 						var infowindow = new google.maps.InfoWindow({content: content});
+						console.log(content)
 						return function(ev) {
 								if( prev_infowindow_map ) {
 										prev_infowindow_map.close();
 								}
 								prev_infowindow_map = infowindow;
-								getCollisionByBikeStation(lat,lng);
+								if (content.includes('Cyclists') === false){
+									getCollisionByBikeStation(lat,lng, content);
+								}
 								infowindow.setPosition(ev.latLng);
 								infowindow.setContent(content);
 								infowindow.open(map, this);

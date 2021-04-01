@@ -57,4 +57,5 @@ def save_bike_stations_data():
 					save_end_bike_station_uri = requests.post('http://localhost:5000/bike_station', json=end_station_data)
 					print(save_end_bike_station_uri)
 
+get_all_files_by_year()
 save_bike_stations_data()

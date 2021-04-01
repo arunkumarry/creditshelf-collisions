@@ -5,6 +5,7 @@ from app import mongo
 import pdb
 import json
 import reverse_geocoder as rg
+from haversine import haversine, Unit
 
 map_mod = Blueprint('maps', __name__)
 
@@ -66,20 +67,33 @@ def get_bike_stations():
 	return jsonify({'raw_markers': finlist})
 
 
-@map_mod.route('/map/bike-station-collisions/<string:position>', methods=['GET'])
-def get_collisions_bike_stations(position):
+@map_mod.route('/map/bike-station-collisions', methods=['GET'])
+def get_collisions_bike_stations():
 	collisions = mongo.db.collisions
+	position = request.args['position']
+	station_name = request.args['station_id']
 	lat = float(position.split(',')[0])
 	lng = float(position.split(',')[1])
 	location = rg.search((lat,lng))
 	address = location[0]['name']
 	borough = address.upper()
 	finlist = []
+	station = mongo.db.bike_stations.find({'name': station_name})[0]
+	bike_station = {
+		'lat': float(station['latitude']),
+		'lng': float(station['longitude']),
+		'icon': 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+		'infobox': station['name']
+	}
+	finlist.append(bike_station)
+
 	for collision in collisions.find({'borough': borough}):
+		dist = haversine((bike_station['lat'], bike_station['lng']), (float(collision['latitude']), float(collision['longitude'])), unit=Unit.MILES)
+		rounded_dist = round(dist, 2)
 		collision_add = {'lat': float(collision['latitude']),
 			'lng': float(collision['longitude']),
 			'icon': 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
-			'infobox': "<b>Cyclists Injured: {}; Cyclists Killed: {}</b>".format(collision['cyclists_injured'], collision['cyclists_killed'])
+			'infobox': "<b>Cyclists Injured: {} <br>Cyclists Killed: {} <br>Distance to Station: {}miles</b>".format(collision['cyclists_injured'], collision['cyclists_killed'], rounded_dist)
 		}
 		finlist.append(collision_add)
 

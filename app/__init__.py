@@ -14,7 +14,7 @@ mongo = PyMongo(app)
 
 @app.route('/', methods=['GET'])
 def hello():
-	return "Hello World"
+	return render_template('home.html')
 
 from app.main.controllers.collision import collision as collision_module
 from app.main.controllers.bike_stations import bike_station as bike_stations_module

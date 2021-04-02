@@ -52,13 +52,15 @@ Running the scripts to get collisions data and bike stations data from external 
 To get collisions data by Borough
 ```bash
 cd scripts/
-python get_cycle_collisions_by_borough.py BRONX
+python get_cycle_collisions_by_borough.py # To get all
+python get_cycle_collisions_by_borough.py BRONX # To get by borough
 ```
 
 To get bike stations data by year.(This process takes sometime to extract download csv file and saving to DB)
 ```bash
 cd scripts/
-python get_bike_data_by_year.py
+python get_bike_data_by_year.py # default year as 2019
+python get_bike_data_by_year.py 2018 # for any other year
 ```
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

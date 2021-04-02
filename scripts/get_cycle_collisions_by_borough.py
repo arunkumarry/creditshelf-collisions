@@ -1,13 +1,17 @@
 import sys
 import requests
 import json
+import pdb
 
 class CollisionData:
-	def __init__(self, borough):
-		self.borough = borough
+	def __init__(self, borough=""):
+		self.borough = borough.upper()
 
 	def get_by_borough(self):
-		uri = "https://data.cityofnewyork.us/resource/h9gi-nx95.json?borough=" + self.borough
+		if self.borough:
+			uri = "https://data.cityofnewyork.us/resource/h9gi-nx95.json?borough=" + self.borough
+		else:
+			uri = "https://data.cityofnewyork.us/resource/h9gi-nx95.json"
 		response = requests.get(uri)
 		collisions = response.json()
 		cycle_collisions = []
@@ -28,8 +32,11 @@ class CollisionData:
 		print(cycle_collisions)
 		return json.dumps(cycle_collisions)
 
-
-collisions = CollisionData(sys.argv[1])
-print(collisions.get_by_borough())
+try:
+	collisions = CollisionData(sys.argv[1])
+except IndexError:
+	collisions = CollisionData()
+finally:	
+	print(collisions.get_by_borough())
 
 

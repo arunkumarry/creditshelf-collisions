@@ -2,7 +2,9 @@
 <html>
   <head>
     <title>Collisions Geolocation</title>
-		<script src="//maps.googleapis.com/maps/api/js?key={{ googlemaps_key }}&map_ids=(None,)&language=en&region=US" type="text/javascript"></script>
+		<script
+      src="https://maps.googleapis.com/maps/api/js?key={{ googlemaps_key }}">
+  	</script>
 		
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
@@ -13,137 +15,143 @@
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
 		<style type="text/css">
-					#sndmap { height:700px;width:1400px;margin:30px; }
+			#sndmap { height:700px;width:1400px;margin:20px; }
 		</style>
 
 		<script type="text/javascript">
-				var map = null;
-				var map_markers = [];
-				var prev_infowindow_map = null;
+			var map = null;
+			var map_markers = [];
+			var prev_infowindow_map = null;
 
-				function initialize_map(info) {
-						var raw_markers = info['raw_markers']
-						if (raw_markers === undefined) {
-							var raw_markers = JSON.parse('{{ raw_markers|safe }}')
-						}
-						document.getElementById('sndmap').style.display = 'block';
-						map = new google.maps.Map(
-						document.getElementById('sndmap'), {
-								center: new google.maps.LatLng(raw_markers[0].lat, raw_markers[0].lng),
-								zoom: 13,
-								mapTypeId: google.maps.MapTypeId.ROADMAP,
-								zoomControl: true,
-								mapTypeControl: true,
-								scaleControl: true,
-								streetViewControl: true,
-								rotateControl: true,
-								scrollwheel: true,
-								fullscreenControl: true,
-								styles: ""
-						});
+			function initialize_map(info) {
+				var raw_markers = info['raw_markers']
+				if (raw_markers === undefined) {
+					var raw_markers = JSON.parse('{{ raw_markers|safe }}')
+				}
+				document.getElementById('sndmap').style.display = 'block';
+				map = new google.maps.Map(
+				document.getElementById('sndmap'), {
+					center: new google.maps.LatLng(raw_markers[0].lat, raw_markers[0].lng),
+					zoom: 13,
+					mapTypeId: google.maps.MapTypeId.ROADMAP,
+					zoomControl: true,
+					mapTypeControl: true,
+					scaleControl: true,
+					streetViewControl: true,
+					rotateControl: true,
+					scrollwheel: true,
+					fullscreenControl: true,
+					styles: ""
+				});
 
-						//center map location on user location
-						// add kml layer on map
-						const ctaLayer = new google.maps.KmlLayer({
-						url: "",
+				// add gmap markers
+				for(i=0; i<raw_markers.length;i++) {
+					console.log(raw_markers[i].lat)
+					map_markers[i] = new google.maps.Marker({
+						position: new google.maps.LatLng(raw_markers[i].lat, raw_markers[i].lng),
 						map: map,
-						});
+						icon: raw_markers[i].icon,
+						title: raw_markers[i].title ? raw_markers[i].title : null,
+						label: raw_markers[i].label ? raw_markers[i].label : null
+					});
 
-						// add gmap markers
-						for(i=0; i<raw_markers.length;i++) {
-								console.log(raw_markers[i].lat)
-								map_markers[i] = new google.maps.Marker({
-										position: new google.maps.LatLng(raw_markers[i].lat, raw_markers[i].lng),
-										map: map,
-										icon: raw_markers[i].icon,
-										title: raw_markers[i].title ? raw_markers[i].title : null,
-										label: raw_markers[i].label ? raw_markers[i].label : null
-								});
+					if(raw_markers[i].infobox)
+					{
+						google.maps.event.addListener(
+							map_markers[i],
+							'click',
+							getInfoCallback(map, raw_markers[i].infobox, raw_markers[i].lat, raw_markers[i].lng),
 
-							if(raw_markers[i].infobox)
-							{
-										google.maps.event.addListener(
-														map_markers[i],
-														'click',
-														getInfoCallback(map, raw_markers[i].infobox, raw_markers[i].lat, raw_markers[i].lng),
-
-										);
-							}
-						}
+						);
+					}
 				}
+			}
 
-				// Function to get the collisions by borough. Args - borough
-				function getSubmitResponse(){
-            var borough = $("#borough").val();
-            $.ajax({
-            type: "GET",
-            url: "/map/collisions/" + borough,
-            })
-            .done(function( json ) {
+			// Function to get the collisions by borough. Args - borough
+			function getSubmitResponse(){
+				var borough = $("#boroughs").val();
+				$.ajax({
+				type: "GET",
+				url: "/map/collisions/" + borough,
+				})
+				.done(function( json ) {
 
-							 console.log(json)
-							 initialize_map(json)
-            });
-				}
+						console.log(json)
+						initialize_map(json)
+				});
+			}
 
-				// Function to get the collisions in the same area of bike station. Args - position, station_id
-				function getCollisionByBikeStation(lat, lng, station_id){
-					var position = String(lat)+','+String(lng)
-					console.log(position)
-            $.ajax({
-            type: "GET",
-            url: "/map/bike-station-collisions",
-            data: { position: position, station_id: station_id}
-            })
-            .done(function( json ) {
+			function getBoroughs(){
+				$.ajax({
+				type: "GET",
+				url: "/boroughs",
+				})
+				.done(function( json ) {
+					console.log(json)
+					var boroughs = json['result'];
+					var options = '';
 
-							 console.log(json)
-							 initialize_map(json)
-            });
-				}
-				
-				// Function to get the all bike stations.
-				function getStationResponse(){
-            $.ajax({
-            type: "GET",
-            url: "/map/bike-stations",
-            // data: { borough: emailId, submiType: 'srSubmit'}
-            })
-            .done(function( json ) {
+					for (var i = 0; i < boroughs.length; i++) {
+						options += '<option value="' + boroughs[i] + '" />';
+					}
 
-							 console.log(json)
-							 initialize_map(json)
-            });
-        }
+					document.getElementById('borough').innerHTML = options;
+				});
+			}
 
-				function getInfoCallback(map, content, lat, lng) {
-						var infowindow = new google.maps.InfoWindow({content: content});
-						console.log(content)
-						return function(ev) {
-								if( prev_infowindow_map ) {
-										prev_infowindow_map.close();
-								}
-								prev_infowindow_map = infowindow;
-								if (content.includes('Cyclists') === false){
-									getCollisionByBikeStation(lat,lng, content);
-								}
-								infowindow.setPosition(ev.latLng);
-								infowindow.setContent(content);
-								infowindow.open(map, this);
-						};
-				}
-				
-				function clickposCallback(uri, latLng) {
-					xhttp = new XMLHttpRequest();
-					xhttp.open("POST", uri);
-					xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-						xhttp.send("lat=" + latLng.lat() + "&lng="  + latLng.lng());
-				}
+			// Function to get the collisions in the same area of bike station. Args - position, station_id
+			function getCollisionByBikeStation(lat, lng, station_id){
+				var position = String(lat)+','+String(lng)
+					$.ajax({
+					type: "GET",
+					url: "/map/bike-station-collisions",
+					data: { position: position, station_id: station_id}
+					})
+					.done(function( json ) {
+						console.log(json)
+						initialize_map(json)
+					});
+			}
+			
+			// Function to get the all bike stations.
+			function getStationResponse(){
+				$.ajax({
+				type: "GET",
+				url: "/map/bike-stations",
+				// data: { borough: emailId, submiType: 'srSubmit'}
+				})
+				.done(function( json ) {
+					console.log(json)
+					initialize_map(json)
+				});
+			}
 
-				
-				google.maps.event.addDomListener(window, 'load', initialize_map);
-				
+			function getInfoCallback(map, content, lat, lng) {
+				var infowindow = new google.maps.InfoWindow({content: content});
+				console.log(content)
+				return function(ev) {
+					if( prev_infowindow_map ) {
+						prev_infowindow_map.close();
+					}
+					prev_infowindow_map = infowindow;
+					if (content.includes('Cyclists') === false){
+						getCollisionByBikeStation(lat,lng, content);
+					}
+					infowindow.setPosition(ev.latLng);
+					infowindow.setContent(content);
+					infowindow.open(map, this);
+				};
+			}
+			
+			function clickposCallback(uri, latLng) {
+				xhttp = new XMLHttpRequest();
+				xhttp.open("POST", uri);
+				xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+					xhttp.send("lat=" + latLng.lat() + "&lng="  + latLng.lng());
+			}
 
+			google.maps.event.addDomListener(window, 'load', initialize_map);
+			window.onload = getBoroughs();
 		</script>
   </head>
   <body>
@@ -151,13 +159,14 @@
 			<div class="col-md-6 text-center">
 				<form class="form-inline" role="form" id="formRegister">
 					<div class="form-group">
-						<input type="text" name="borough" class="form-control input-lg" id="borough" placeholder="Enter borough">
+						<input name="borough" list="borough" id="boroughs"/>
+						<datalist id="borough"></datalist>
 					</div>
-					<button type="button" name="srSubmit" onClick="getSubmitResponse();" class="btn btn-primary btn-lg">Filter</button>
+					<button type="button" name="srSubmit" onClick="getSubmitResponse();" class="btn btn-primary">Filter</button>
 				</form>
 			</div>
 			<div class="col-md-6 text-center">
-				<button type="button" name="showStations" onClick="getStationResponse();" class="btn btn-info btn-lg">Bike Stations</button>
+				<button type="button" name="showStations" onClick="getStationResponse();" class="btn btn-info">Bike Stations</button>
 			</div>
 		</div>
 

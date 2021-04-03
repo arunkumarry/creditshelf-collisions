@@ -4,6 +4,19 @@ import pdb
 
 collision = Blueprint('collision', __name__)
 
+@collision.route('/boroughs', methods=['GET'])
+def get_all_boroughs():
+  collisions = mongo.db.collisions
+  output = []
+  logger.info("Getting all the boroughs")
+  for collision in collisions.find():
+    try:
+      if collision['borough'] not in output:
+        output.append(collision['borough'])
+    except KeyError:
+      continue
+  return jsonify({'result' : output})
+
 @collision.route('/collisions', methods=['GET'])
 def get_all_collisions():
   collisions = mongo.db.collisions

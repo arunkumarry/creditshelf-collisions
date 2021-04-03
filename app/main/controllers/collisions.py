@@ -100,18 +100,10 @@ def add_collision():
         'latitude': latitude,
         'longitude': longitude,
       }, upsert=True)
+    output = 'Successful'
   except Exception as e:
     output = str(e)
     logger.error(output)
     raise
-  
-  new_collision = collisions.find_one({'_id': collision })
-  logger.info("Collision created - {}".format(str(new_collision)))
-  output = {'collision_id' : new_collision['collision_id'],
-      'borough': new_collision['borough'],
-      'cyclists_injured' : new_collision['cyclists_injured'],
-      'cyclists_killed': new_collision['cyclists_killed'],
-      'latitude': new_collision['latitude'],
-      'longitude': new_collision['longitude'],
-    }
+
   return jsonify({'result' : output})

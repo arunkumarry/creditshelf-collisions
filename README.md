@@ -36,6 +36,8 @@ sudo apt-get install -y mongodb-org
 sudo systemctl start mongod
 sudo systemctl status mongod
 ```
+## ENV Setup
+Create a .env file, for sample refer to .default_env
 
 ## Start the application
 

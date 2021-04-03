@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Geolocation</title>
-		<script src="//maps.googleapis.com/maps/api/js?key=AIzaSyCRgrK1ZVEZniDMHdcxf2A8tAH-nWbufD0&map_ids=(None,)&language=en&region=US" type="text/javascript"></script>
+    <title>Collisions Geolocation</title>
+		<script src="//maps.googleapis.com/maps/api/js?key={{ googlemaps_key }}&map_ids=(None,)&language=en&region=US" type="text/javascript"></script>
 		
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
@@ -19,10 +19,6 @@
 		<script type="text/javascript">
 				var map = null;
 				var map_markers = [];
-				var map_rectangles = [];
-				var map_circles = [];
-				var map_polygons = [];
-				var map_polylines = [];
 				var prev_infowindow_map = null;
 
 				function initialize_map(info) {
@@ -76,12 +72,12 @@
 						}
 				}
 
+				// Function to get the collisions by borough. Args - borough
 				function getSubmitResponse(){
             var borough = $("#borough").val();
             $.ajax({
             type: "GET",
             url: "/map/collisions/" + borough,
-            // data: { borough: emailId, submiType: 'srSubmit'}
             })
             .done(function( json ) {
 
@@ -90,6 +86,7 @@
             });
 				}
 
+				// Function to get the collisions in the same area of bike station. Args - position, station_id
 				function getCollisionByBikeStation(lat, lng, station_id){
 					var position = String(lat)+','+String(lng)
 					console.log(position)
@@ -105,6 +102,7 @@
             });
 				}
 				
+				// Function to get the all bike stations.
 				function getStationResponse(){
             $.ajax({
             type: "GET",

@@ -156,7 +156,7 @@
   </head>
   <body>
 		<div class="row" style="padding-top: 10px;">
-			<div class="col-md-6 text-center">
+			<div class="col-md-5 text-center">
 				<form class="form-inline" role="form" id="formRegister">
 					<div class="form-group">
 						<input name="borough" list="borough" id="boroughs"/>
@@ -165,7 +165,11 @@
 					<button type="button" name="srSubmit" onClick="getSubmitResponse();" class="btn btn-primary">Filter</button>
 				</form>
 			</div>
-			<div class="col-md-6 text-center">
+			<div class="col-md-3">
+				<img src="http://maps.google.com/mapfiles/ms/icons/green-dot.png"> - Collision
+				<img src="http://maps.google.com/mapfiles/ms/icons/blue-dot.png"> - Bike Station
+			</div>
+			<div class="col-md-4 text-center">
 				<button type="button" name="showStations" onClick="getStationResponse();" class="btn btn-info">Bike Stations</button>
 			</div>
 		</div>

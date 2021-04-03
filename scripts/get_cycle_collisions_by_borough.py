@@ -14,7 +14,7 @@ class CollisionData:
 			if self.borough:
 				uri = "https://data.cityofnewyork.us/resource/h9gi-nx95.json?borough=" + self.borough +'&'+'$limit=50000&$offset='+str(offset)
 			else:
-				uri = "https://data.cityofnewyork.us/resource/h9gi-nx95.json?$limit=50000$offset="+str(offset)
+				uri = "https://data.cityofnewyork.us/resource/h9gi-nx95.json?$limit=50000&$offset="+str(offset)
 			response = requests.get(uri)
 			collisions = response.json()
 			try:

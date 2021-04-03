@@ -91,10 +91,7 @@ def get_collisions_bike_stations():
 
 	lat = float(position.split(',')[0])
 	lng = float(position.split(',')[1])
-	# Reverse geo coder to get area name using lat,lng
-	location = rg.search((lat,lng))
-	address = location[0]['name']
-	borough = address.upper()
+	
 	finlist = []
 	# Find bike station by station_name
 	logger.info("Finding stations in {}".format(station_name))
@@ -111,16 +108,18 @@ def get_collisions_bike_stations():
 	}
 	finlist.append(bike_station)
 
-	logger.info("Finding collisions for the address - {}".format(borough))
-	for collision in collisions.find({'borough': borough}): # Find collisions in borough from lat,lng
+	logger.info("Finding collisions within 1 mile of the station location")
+	for collision in collisions.find(): # Find collisions in borough from lat,lng
 		try:
 			dist = haversine((bike_station['lat'], bike_station['lng']), (float(collision['latitude']), float(collision['longitude'])), unit=Unit.MILES)
 			rounded_dist = round(dist, 2)
-			collision_add = {'lat': float(collision['latitude']),
-				'lng': float(collision['longitude']),
-				'icon': 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
-				'infobox': "<b>Cyclists Injured: {} <br>Cyclists Killed: {} <br>Distance to Station: {}miles</b>".format(collision['cyclists_injured'], collision['cyclists_killed'], rounded_dist)
-			}
+			if rounded_dist < 1:
+				collision_add = {'lat': float(collision['latitude']),
+					'lng': float(collision['longitude']),
+					'icon': 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+					'infobox': "<b>Cyclists Injured: {} <br>Cyclists Killed: {} <br>Distance to Station: {}miles</b>".format(collision['cyclists_injured'], collision['cyclists_killed'], rounded_dist)
+				}
+			else: continue
 		except KeyError: continue
 		except Exception as e:
 			logger.error(str(e))
